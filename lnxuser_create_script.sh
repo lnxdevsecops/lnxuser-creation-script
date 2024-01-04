@@ -24,25 +24,34 @@ if [ -n "$username" ]; then
     echo -e "Creating  New Users.........! \n"
 
     for new_user in ${new_user_data[@]}; do
-        useradd -m $new_user
 
-        #Generating random password
+        #Generating random string
         rand_pass=$(openssl rand -base64 14)
-        # setting up the password
-        # echo -e "$rand_pass\n$rand_pass" | passwd $uname 1>/dev/nuall
-        echo "$rand_pass" | passwd --stdin $new_user 1>/dev/null
 
-        if [ -n $rand_pass ]; then
-            password_set="Yes"
-        else
-            password_set="No"
-        fi
+        # ubuntu_os=$(grep -w Ubuntu /etc/os-release  | cut -d '=' -f2 | tr -d '"' | awk 'NR==2 {print $1}')
+
+        #   if [ $ubuntu_os -eq "Ubuntu" ]; then
+        ubuntu_os=$(grep -w Ubuntu /etc/os-release  | cut -d '=' -f2 | tr -d '"' | awk 'NR==2 {print $1}')
+
+            if [ "$ubuntu_os" == "Ubuntu" ]; then
+              adduser --disabled-password --gecos "" "$new_user" 1>/dev/null
+              echo "$new_user:$rand_pass" | chpasswd 1>/dev/null
+          else
+              useradd -m $new_user
+              echo "$rand_pass" | passwd --stdin $new_user 1>/dev/null
+          fi
+
+          if [ -n $rand_pass ]; then
+              password_set="Yes"
+          else
+              password_set="No"
+          fi
+
         # Shows user details
         echo -e "UserName: $new_user \nPassword Status: $password_set \n"
 
         # stores user and password details in /root/.credentials files
         echo -e "UserName: $new_user \nPassword: $rand_pass" >>/root/.credentials
-
         sleep 3
     done
 
